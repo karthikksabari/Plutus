@@ -1,0 +1,18 @@
+{
+  "filename": "BOB CA 18930200002048.pdf",
+  "flags": [
+    {
+      "issue": "Unverified Signature",
+      "page": 1,
+      "severity": "High"
+    },
+    {
+      "issue": "Large Transaction > $10k",
+      "page": 3,
+      "severity": "Medium"
+    }
+  ],
+  "risk_score": 85,
+  "status": "Analyzed",
+  "timestamp": "2026-02-09 22:46:40"
+}
