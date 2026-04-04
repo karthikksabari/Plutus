@@ -52,11 +52,14 @@ const Login = () => {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center gap-6 mb-12 relative z-10"
       >
-        <img 
-          src={logo} 
-          alt="Plutus" 
-          className="h-20 w-20 object-cover rounded-2xl shadow-xl border border-slate-100" 
-        />
+        {/* ZOOMED LOGO WRAPPER APPLIED HERE */}
+        <div className="h-20 w-20 rounded-2xl shadow-xl border border-slate-100 overflow-hidden shrink-0">
+          <img 
+            src={logo} 
+            alt="Plutus" 
+            className="h-full w-full object-cover scale-[3.4]" 
+          />
+        </div>
         <h1 className="text-7xl font-black text-slate-900 tracking-tighter uppercase leading-none">Plutus</h1>
       </motion.div>
 

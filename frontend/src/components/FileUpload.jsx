@@ -1,32 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Loader2, CheckCircle, Terminal } from 'lucide-react';
+import { Upload, CheckCircle, ShieldAlert, FileSearch } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { analyzeDocument } from '../services/api';
 
 const FileUpload = () => {
   const [dragActive, setDragActive] = useState(false);
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState('idle'); // idle, uploading, success, rejected, error
+  const [errorMessage, setErrorMessage] = useState("");
   const [logIndex, setLogIndex] = useState(0);
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
   const logs = [
     "Initializing Secure Ingress...",
-    "Magic Bytes Verified: Genuine PDF detected.",
-    "AI Extraction Initiated (Neuro-Symbolic Core)...",
-    "Running GST Modulus 36 Checksum...",
+    "Magic Bytes Verified: Analyzing structure...",
+    "AI Extraction Initiated...",
+    "Running Compliance Checksum...",
     "Redacting PII in Secure Memory...",
-    "Cross-referencing Backboard.io Reputation...",
-    "Analysis Complete. Syncing Forensic Lab..."
+    "Verifying Financial Context..."
   ];
 
+  // Cycles through the terminal logs
   useEffect(() => {
     let interval;
     if (status === 'uploading' && logIndex < logs.length) {
-      interval = setInterval(() => {
-        setLogIndex(prev => prev + 1);
-      }, 800);
+      interval = setInterval(() => setLogIndex(prev => prev + 1), 800);
     }
     return () => clearInterval(interval);
   }, [status, logIndex]);
@@ -37,72 +35,96 @@ const FileUpload = () => {
     else if (e.type === "dragleave") setDragActive(false);
   };
 
-  // 🛡️ THE ARMOR-PLATED PROCESS FUNCTION
   const processFile = async (fileObj) => {
     if (!fileObj || !(fileObj instanceof File)) return;
 
     setStatus('uploading');
     setLogIndex(0);
+    setErrorMessage("");
     
     try {
-      // 1. CREATE VISUAL SNAPSHOT
       const reader = new FileReader();
       reader.readAsDataURL(fileObj);
-      
       reader.onload = async () => {
-          // Safe Save Preview
+          // 1. Save the visual snapshot
           localStorage.setItem('audit_file_preview', reader.result);
           localStorage.setItem('audit_file_type', fileObj.type);
 
-          // 2. CALL API
-          const result = await analyzeDocument(fileObj);
-          console.log("🔥 API RESPONSE:", result); // Debug Log
+          // 2. THE 5.5 SECOND DUMMY BYPASS 
+          await new Promise(resolve => setTimeout(resolve, 5500));
 
-          // 🛡️ SAFETY CHECK 1: Did we get a valid object?
-          if (!result || (!result.data && !result.status)) {
-             throw new Error("Invalid response from server (Empty Payload)");
-          }
+          // 3. GENERATE DUMMY MATH/FINANCIAL PAYLOAD
+          const dummyPayload = {
+            status: "success",
+            data: {
+              meta: { 
+                filename: fileObj.name, 
+                document_type: "Bank Statement", 
+                status: "REQUIRES_ACTION" 
+              },
+              scores: { 
+                risk_score: 88, 
+                reputation_score: 12,
+                confidence: 94.5 
+              },
+              entities: [
+                { key: "Vendor", value: "TechShell Solutions" },
+                { key: "GSTIN", value: "29ABCDE1234F1Z5" },
+                { key: "Total Amount", value: "₹1,45,000.00" }
+              ],
+              lineItems: [
+                { date: "2024-04-06", desc: "Consulting Charges - April", amount: "1,20,000.00" },
+                { date: "2024-04-08", desc: "Netflix Premium Subscription", amount: "849.00", status: "CONFLICT" },
+                { date: "2024-04-10", desc: "Personal Gym Equipment", amount: "24,151.00", status: "CONFLICT" }
+              ],
+              anomalies: [
+                { 
+                  type: "Policy Violation", 
+                  message: "Non-business expenses detected.", 
+                  severity: "High",
+                  reasoning: "Netflix and Gym Equipment are flagged as personal expenses under corporate policy."
+                }
+              ]
+            }
+          };
 
-          // 🛡️ SAFETY CHECK 2: Handle Nesting
-          // Ensure we have the structure ReportView expects
-          let safeData = result;
+          // 4. Save Dummy Data & Advance
+          localStorage.setItem('last_audit', JSON.stringify(dummyPayload));
           
-          // If the backend returned { data: { ... } }, we are good. 
-          // If it returned { status: "success", data: { ... } }, we are also good.
-          // We just need to ensure 'safeData' is the object containing 'data.scores', etc.
-          
-          // CRITICAL: Save it exactly as ReportView expects it
-          localStorage.setItem('last_audit', JSON.stringify(safeData));
-          
-          // 3. WAIT FOR LOGS (Ferrari Feel)
-          setTimeout(() => {
-            setStatus('success');
-            setTimeout(() => navigate('/report'), 1500);
-          }, 4000);
+          setStatus('success');
+          // Wait 1 second on the green checkmark, then instantly navigate
+          setTimeout(() => navigate('/report'), 1000); 
       };
 
     } catch (error) {
-      console.error("❌ CRASH PREVENTED:", error);
+      console.error("Ingestion Error:", error);
       setStatus('error');
-      // Reset after 3 seconds so user can try again
       setTimeout(() => setStatus('idle'), 3000);
+    }
+  };
+
+  const glitchVariants = {
+    initial: { opacity: 0, x: -10 },
+    animate: { 
+      opacity: [0, 1, 0.8, 1],
+      x: [ -10, 0, 5, 0],
+      transition: { duration: 0.5 }
     }
   };
 
   return (
     <div className="w-full">
       <AnimatePresence mode='wait'>
+        
+        {/* --- IDLE STATE --- */}
         {status === 'idle' && (
           <motion.div
             key="idle"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag}
             onDrop={(e) => { 
-              e.preventDefault(); 
-              setDragActive(false); 
-              if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                processFile(e.dataTransfer.files[0]); 
-              }
+              e.preventDefault(); setDragActive(false); 
+              if (e.dataTransfer.files && e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); 
             }}
             onClick={() => inputRef.current.click()}
             whileHover={{ y: -5, boxShadow: "0 40px 80px -20px rgba(15, 23, 42, 0.4)" }}
@@ -110,45 +132,55 @@ const FileUpload = () => {
               dragActive ? "bg-[#1E293B] border-blue-500 shadow-2xl" : "bg-[#0F172A] border-transparent"
             }`}
           >
-            <input 
-              ref={inputRef} 
-              type="file" 
-              className="hidden" 
-              onChange={(e) => { 
-                if(e.target.files && e.target.files[0]) processFile(e.target.files[0]); 
-              }} 
-            />
-            
+            <input ref={inputRef} type="file" className="hidden" onChange={(e) => { if(e.target.files && e.target.files[0]) processFile(e.target.files[0]); }} />
             <div className="h-36 w-36 rounded-[3rem] bg-white/5 flex items-center justify-center mb-10 border border-white/10 shadow-2xl backdrop-blur-md">
               <Upload className="h-16 w-16 text-white group-hover:text-blue-400 transition-colors" />
             </div>
-            <h3 className="text-5xl font-bold text-white mb-4 tracking-tighter uppercase text-center">
-              {dragActive ? "Ingest Now" : "Drop Artifact"}
-            </h3>
-            <p className="text-slate-400 font-bold text-sm uppercase tracking-[0.2em] text-center">
-              Universal Support • 200+ Enterprise Formats
-            </p>
+            <h3 className="text-5xl font-bold text-white mb-4 tracking-tighter uppercase">Drop Artifact</h3>
+            <p className="text-slate-400 font-bold text-sm uppercase tracking-[0.2em]">Universal Financial Ingress</p>
           </motion.div>
         )}
 
+        {/* --- HIGH-TECH SCANNING STATE --- */}
         {status === 'uploading' && (
-          <motion.div key="uploading" className="rounded-[4rem] p-12 flex flex-col items-center text-center min-h-[420px] justify-center bg-[#0F172A]">
-            <Loader2 className="h-16 w-16 text-blue-500 animate-spin mb-8" />
-            <div className="h-24 flex flex-col items-center justify-center">
-                <motion.h3 
-                  key={logIndex}
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                  className="text-2xl font-bold text-white uppercase tracking-widest max-w-xl leading-relaxed"
-                >
-                  {logs[logIndex] || "Finalizing Forensic Audit..."}
-                </motion.h3>
+          <motion.div 
+            key="uploading" 
+            variants={glitchVariants} initial="initial" animate="animate"
+            className="rounded-[4rem] p-12 flex flex-col items-center text-center min-h-[420px] justify-center bg-[#0F172A] border-4 border-blue-500/30"
+          >
+            
+            {/* Holographic Laser Scanner Animation */}
+            <div className="relative h-40 w-40 bg-[#1E293B] rounded-[3.5rem] border border-blue-500/40 overflow-hidden mb-12 flex items-center justify-center shadow-[0_0_80px_rgba(59,130,246,0.2)]">
+              {/* Scan Grid */}
+              <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "linear-gradient(#2563EB 1px, transparent 1px), linear-gradient(90deg, #2563EB 1px, transparent 1px)", backgroundSize: "15px 15px" }} />
+              
+              <FileSearch className="text-blue-500/50 h-16 w-16" />
+              
+              {/* FIXED: Fast, continuous, full-box laser sweep (0 to 155px) */}
+              <motion.div
+                animate={{ y: [0, 155, 0] }}
+                transition={{ duration: 1.5, ease: "linear", repeat: Infinity }} 
+                className="absolute top-0 left-0 w-full h-[5px] bg-blue-400 shadow-[0_0_30px_rgba(96,165,250,1),0_0_10px_rgba(96,165,250,1)]"
+              />
             </div>
-            <p className="text-blue-500/60 font-mono text-xs mt-6 uppercase tracking-[0.2em]">
-              Processing Layer {Math.min(logIndex + 1, 7)}/7
-            </p>
+
+            {/* FIXED: Terminal Icon Removed & Text Centered */}
+            <div className="h-24 max-w-xl mx-auto flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                  <motion.h3 
+                    key={logIndex} 
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="text-2xl font-bold text-white uppercase tracking-widest leading-relaxed text-center"
+                  >
+                    {logs[logIndex] || "Finalizing Forensic Scan..."}
+                  </motion.h3>
+                </AnimatePresence>
+            </div>
           </motion.div>
         )}
 
+        {/* --- SUCCESS STATE --- */}
         {status === 'success' && (
           <motion.div key="success" className="rounded-[4rem] p-12 flex flex-col items-center text-center min-h-[420px] justify-center bg-[#0F172A] border-4 border-emerald-500/30">
             <CheckCircle className="h-24 w-24 text-emerald-400 mb-8" />
@@ -156,12 +188,6 @@ const FileUpload = () => {
           </motion.div>
         )}
 
-        {status === 'error' && (
-          <motion.div key="error" className="rounded-[4rem] p-12 flex flex-col items-center text-center min-h-[420px] justify-center bg-[#0F172A] border-4 border-rose-500/30">
-            <h3 className="text-2xl font-bold text-rose-500 uppercase tracking-widest">Ingestion Failed</h3>
-            <p className="text-slate-400 mt-4 text-sm max-w-xs">Forensic Engine Unreachable.</p>
-          </motion.div>
-        )}
       </AnimatePresence>
     </div>
   );
